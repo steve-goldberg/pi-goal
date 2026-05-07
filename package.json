@@ -1,25 +1,24 @@
 {
-    "name": "pi-stuff",
-    "private": true,
-    "version": "0.0.1",
-    "type": "module",
-    "workspaces": [
-        "packages/*"
-    ],
-    "keywords": [
-        "pi-package"
-    ],
-    "pi": {
-        "extensions": [
-            "packages"
-        ]
-    },
-    "peerDependencies": {
-        "@mariozechner/pi-ai": "*",
-        "@mariozechner/pi-coding-agent": "*",
-        "@mariozechner/pi-tui": "*"
-    },
-    "scripts": {
-        "publish:all": "./scripts/publish-all.sh"
-    }
+  "name": "@baggiiiie/pi-goal",
+  "version": "0.0.1",
+  "description": "Codex-style persisted goals for pi coding agent sessions.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steve-goldberg/pi-stuff.git"
+  },
+  "bugs": {
+    "url": "https://github.com/steve-goldberg/pi-stuff/issues"
+  },
+  "homepage": "https://github.com/steve-goldberg/pi-stuff#readme",
+  "files": ["src", "README.md", "LICENSE"],
+  "keywords": ["pi-package", "pi", "codex", "goals", "agent"],
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-coding-agent": "*"
+  }
 }

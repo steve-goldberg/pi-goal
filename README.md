@@ -1,171 +1,74 @@
-# pi-stuff
+# Goal extension
 
-My small collection of [pi](https://github.com/badlogic/pi-mono) extension packages, only made possible by the incredible work of art from Mario.
+Codex-style persisted goals for pi, based on the `goal` feature released in [OpenAI Codex](https://github.com/openai/codex/releases/tag/rust-v0.128.0).
 
-Available packages:
-- `@baggiiiie/pi-codex-usage`: shows Codex usage with a command and status widget
-- `@baggiiiie/pi-context-chart`: opens a live context usage chart to see which turn blew up current context window
-- `@baggiiiie/pi-context-status`: shows current context-window usage in Pi's status line or a custom footer
-- `@baggiiiie/pi-goal`: Codex-style persisted goals with `/goal` controls and model tools to keep working until done
-- `@baggiiiie/pi-no-ansi`: keeps pi `bash` tool output clean for the model by disabling color and stripping ANSI escapes
-- `@baggiiiie/pi-rtk-rewrite`: proxies pi `bash` tool calls through [rtk](https://github.com/rtk-ai/rtk) before execution
+This repository is a fork of the original [`baggiiiie/pi-stuff`](https://github.com/baggiiiie/pi-stuff) monorepo, reduced to only the `@baggiiiie/pi-goal` extension.
 
-## Install 
+## News
 
-Install all packages:
-```bash
-pi install git:github.com/baggiiiie/pi-stuff
-```
+- Fixed `/goal` command parsing for multi-line objectives and objectives containing special characters.
+- Changed optional `--tokens N` parsing to only consume a trailing token-budget flag, leaving the rest of the objective intact.
+- Restructured this fork so `pi-goal` lives at the repository root instead of under `packages/goal`.
 
-or individually:
+## Install
 
 ```bash
-pi install npm:@baggiiiie/pi-context-chart
-pi install npm:@baggiiiie/pi-context-status
 pi install npm:@baggiiiie/pi-goal
-pi install npm:@baggiiiie/pi-no-ansi
-pi install npm:@baggiiiie/pi-rtk-rewrite
-pi install npm:@baggiiiie/pi-codex-usage
 ```
 
-## Packages
+## This pi extension
 
-### `@baggiiiie/pi-context-chart`
+This extension mirrors that design for pi:
 
-Adds a live context usage chart in a native Glimpse window.
+- Persisted per-session goal state via custom session entries.
+- `/goal` controls to create, pause, resume, clear, and inspect goals.
+- Model tools: `get_goal`, `create_goal`, `update_goal`.
+- Runtime continuation: active goals automatically enqueue follow-up turns until completed, paused, cleared, or budget-limited.
+- Budget accounting: approximate token usage plus elapsed active-turn time; optional `--tokens` budget triggers a budget-limited wrap-up prompt.
 
-![pi-context-chart screenshot](docs/pi-context-chart.png)
-
-Commands:
+## Usage
 
 ```text
-/context-chart
-/context-chart close
-```
-
-Install individually:
-
-```bash
-pi install npm:@baggiiiie/pi-context-chart
-```
-
-Notes:
-- Requires `glimpseui` to be installed where Node can resolve it, or `GLIMPSE_PATH` set to `.../glimpseui/src/glimpse.mjs`.
-
-### `@baggiiiie/pi-context-status`
-
-Shows the current context window in Pi's status area, including an estimated breakdown by system/user/assistant/tools/memory.
-
-Commands:
-
-```text
-/context-status status
-/context-status footer
-/context-status off
-/context-status refresh
-/context-status help
-```
-
-Install individually:
-
-```bash
-pi install npm:@baggiiiie/pi-context-status
-```
-
-Notes:
-- Defaults to compact `status` mode on session start.
-- Set `PI_CONTEXT_STATUS_MODE=footer` for an expanded custom footer.
-- Falls back to a local estimate right after compaction until Pi has fresh context usage again.
-
-### `@baggiiiie/pi-codex-usage`
-
-Adds a Codex usage command and status widget.
-
-![pi-codex-usage screenshot](docs/pi-codex-usage.png)
-
-Commands:
-
-```text
-/codex-usage
-/codex-usage refresh
-/codex-usage clear
-/codex-usage help
-```
-
-Install individually:
-
-```bash
-pi install npm:@baggiiiie/pi-codex-usage
-```
-
-Notes:
-- Run `/login` in Pi and choose ChatGPT Plus/Pro (Codex) before using the default endpoint.
-- Refreshes in the background every 5 minutes by default.
-- Multiple Pi sessions share a small temp-file cache.
-
-
-### `@baggiiiie/pi-goal`
-
-Codex-style persisted goals for pi: create a goal, and active goals automatically enqueue follow-up turns until completed, paused, cleared, or budget-limited.
-
-Commands:
-
-```text
-/goal <objective> [--tokens N]
+/goal ship the new auth flow --tokens 50000
 /goal status
 /goal pause
 /goal resume
 /goal clear
 ```
 
-Install individually:
+The model can mark completion only by calling `update_goal({ "status": "complete" })` after auditing the objective against real evidence.
 
-```bash
-pi install npm:@baggiiiie/pi-goal
-```
+## How Codex `/goal` works
 
-Notes:
-- The model may mark goals complete via `update_goal({ "status": "complete" })`, but cannot pause, resume, clear, or budget-limit them.
-- Optional `--tokens` budget triggers a budget-limited wrap-up prompt.
+Codex goals are a persisted “keep working until done” workflow for a thread.
 
-### `@baggiiiie/pi-no-ansi`
+A thread can have one persisted goal object containing:
 
-Keeps pi `bash` tool output cleaner for the model by disabling common color env settings and stripping ANSI escapes from captured output.
+- objective
+- status: `active`, `paused`, `complete`, or `budget_limited`
+- optional token budget
+- tokens used
+- elapsed time used
+- created/updated timestamps
 
-Install individually:
+Codex exposes user/TUI controls to create, pause, resume, clear, and inspect the goal. It also exposes three model-visible tools:
 
-```bash
-pi install npm:@baggiiiie/pi-no-ansi
-```
+- `get_goal` — returns the current goal, status, budget, usage, and remaining tokens.
+- `create_goal` — creates a new active goal, but only when explicitly requested by user/system/developer instructions. It fails if a goal already exists.
+- `update_goal` — only allows `{ "status": "complete" }`. The model cannot pause, resume, clear, or budget-limit goals; those state changes are controlled by the user/system runtime.
 
-Notes:
-- Only affects pi `bash` tool calls.
-- Intentionally minimal: no commands, no UI, and no command-specific flag rewriting.
+When an active goal turn finishes, Codex accounts token/time usage. If the goal is still active, it can automatically enqueue another continuation turn. The continuation prompt tells the model to keep pursuing the objective, avoid repeating completed work, choose the next concrete action, and audit completion against real evidence.
 
-### `@baggiiiie/pi-rtk-rewrite`
+Before marking a goal complete, the model is instructed to perform a completion audit:
 
-Rewrites Pi `bash` tool calls through [RTK](https://github.com/rtk-ai/rtk) before execution.
+- restate the objective as concrete deliverables or success criteria
+- map every explicit requirement to concrete evidence
+- inspect relevant files, command output, tests, PR state, or other real artifacts
+- verify that proxy signals such as tests or manifests actually cover the objective
+- treat uncertainty as incomplete
+- call `update_goal({ "status": "complete" })` only when no required work remains
 
-![pi-rtk-rewrite screenshot](docs/pi-rtk-rewrite.png)
+If an active goal reaches its token budget, Codex marks it `budget_limited` and sends a wrap-up prompt. The model should stop new substantive work, summarize progress, identify blockers or remaining work, and leave a clear next step. It should still only call `update_goal` if the objective is actually complete.
 
-Commands:
+The key design choice: **the model may complete goals, but it may not pause, resume, clear, or budget-limit them.** This prevents the model from escaping the workflow merely because it is near budget, uncertain, or ready to stop.
 
-```text
-/rtk-rewrite
-/rtk-rewrite status
-/rtk-rewrite on
-/rtk-rewrite off
-/rtk-rewrite refresh
-/rtk-rewrite test git status
-```
-
-Install individually:
-
-```bash
-pi install npm:@baggiiiie/pi-rtk-rewrite
-```
-
-Notes:
-- Install RTK separately and make sure `rtk rewrite` works in your shell.
-- Only Pi `bash` tool calls are rewritten.
-- If RTK fails or has no rewrite, the original command still runs.
