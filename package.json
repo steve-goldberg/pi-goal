@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/steve-goldberg/pi-stuff.git"
+    "url": "git+https://github.com/steve-goldberg/pi-goal.git"
   },
   "bugs": {
-    "url": "https://github.com/steve-goldberg/pi-stuff/issues"
+    "url": "https://github.com/steve-goldberg/pi-goal/issues"
   },
-  "homepage": "https://github.com/steve-goldberg/pi-stuff#readme",
+  "homepage": "https://github.com/steve-goldberg/pi-goal#readme",
   "files": ["src", "README.md", "LICENSE"],
   "keywords": ["pi-package", "pi", "codex", "goals", "agent"],
   "pi": {

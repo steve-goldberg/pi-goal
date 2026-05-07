@@ -2,13 +2,13 @@
 
 Codex-style persisted goals for pi, based on the `goal` feature released in [OpenAI Codex](https://github.com/openai/codex/releases/tag/rust-v0.128.0).
 
-This repository is a fork of the original [`baggiiiie/pi-stuff`](https://github.com/baggiiiie/pi-stuff) monorepo, reduced to only the `@baggiiiie/pi-goal` extension.
+This standalone repository was extracted from the original [`baggiiiie/pi-stuff`](https://github.com/baggiiiie/pi-stuff) monorepo and now tracks only the `@baggiiiie/pi-goal` extension.
 
 ## News
 
 - Fixed `/goal` command parsing for multi-line objectives and objectives containing special characters.
 - Changed optional `--tokens N` parsing to only consume a trailing token-budget flag, leaving the rest of the objective intact.
-- Restructured this fork so `pi-goal` lives at the repository root instead of under `packages/goal`.
+- Restructured the project so `pi-goal` lives at the repository root instead of under `packages/goal`.
 
 ## Install
 
