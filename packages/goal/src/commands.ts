@@ -39,8 +39,11 @@ export function registerGoalCommand(pi: ExtensionAPI, store: GoalStore) {
           return;
         }
 
-        const match = trimmed.match(/^(.*?)(?:\s+--tokens\s+(\d+))?$/)!;
-        const goal = store.create(match[1].trim(), match[2] ? Number(match[2]) : undefined);
+        const tokenMatch = trimmed.match(/\s+--tokens\s+(\d+)\s*$/);
+        const objective = tokenMatch ? trimmed.slice(0, tokenMatch.index).trim() : trimmed;
+        const tokenBudget = tokenMatch ? Number(tokenMatch[1]) : undefined;
+
+        const goal = store.create(objective, tokenBudget);
         refreshGoalUi(ctx, store);
         ctx.ui.notify(`Goal created: ${goal.objective}`, "success");
         pi.sendUserMessage(continuationPrompt(goal), { deliverAs: "followUp" });
