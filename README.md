@@ -2,7 +2,7 @@
 
 Codex-style persisted goals for pi, based on the `goal` feature released in [OpenAI Codex](https://github.com/openai/codex/releases/tag/rust-v0.128.0).
 
-This standalone repository was extracted from the original [`baggiiiie/pi-stuff`](https://github.com/baggiiiie/pi-stuff) monorepo and now tracks only the `@baggiiiie/pi-goal` extension.
+This standalone repository was extracted from the original [`baggiiiie/pi-stuff`](https://github.com/baggiiiie/pi-stuff) monorepo and now tracks only the Pi goal extension.
 
 ## News
 
@@ -13,7 +13,7 @@ This standalone repository was extracted from the original [`baggiiiie/pi-stuff`
 ## Install
 
 ```bash
-pi install npm:@baggiiiie/pi-goal
+pi install git:github.com/steve-goldberg/pi-goal
 ```
 
 ## This pi extension
